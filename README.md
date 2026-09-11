@@ -2,7 +2,7 @@
 
 A vernacular, low-literacy, offline-tolerant mobile platform that enables informal scrap collectors to discover fair prices, connect directly with authorized recyclers, complete documented and traceable material handovers, and receive payment.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Backend (FastAPI + SQLite)
 ```bash
@@ -31,10 +31,10 @@ The Android project structure is set up with Room DB for offline storage. To bui
 2. Sync Gradle dependencies
 3. Run on emulator or device
 
-## 📋 Architecture Overview
+## Architecture Overview
 
 ### Backend API (FastAPI)
-- **Database**: SQLite (easily swappable to MySQL)
+- **Database**: SQLite (easily swappable to PostgreSQL)
 - **Endpoints**:
   - `GET /health` - Health check
   - `GET /categories` - Get material categories with rates
@@ -53,7 +53,7 @@ The Android project structure is set up with Room DB for offline storage. To bui
 - **Features**: Transaction listing, material categories with rates, health check
 - **Real-time**: Connects to FastAPI backend for live data
 
-## 🧪 Testing the API
+## Testing the API
 
 ```bash
 # Health check
@@ -79,7 +79,7 @@ curl -X POST http://localhost:8000/transactions \
 curl http://localhost:8000/transactions
 ```
 
-## 🗄️ Database Schema
+## Database Schema
 
 The database implements the ERD with the following tables:
 - **collectors**: Collector profiles with language preferences
@@ -90,24 +90,8 @@ The database implements the ERD with the following tables:
 - **transactions**: Transaction records with pricing
 - **payments**: Payment tracking and status
 
-## 🌐 Offline-First Architecture
 
-- **Android**: Room DB stores data locally, WorkManager syncs when online
-- **Backend**: Stateless API accepts data whenever the app connects
-- **Dashboard**: Real-time view of synchronized data
-
-## 📱 Android Features Implemented
-
-- ✅ Room Database entities matching backend schema
-- ✅ Basic UI for material lot creation
-- ✅ Price estimation based on material category and weight
-- ✅ Offline storage capability
-- ⏳ API integration (needs Retrofit implementation)
-- ⏳ WorkManager background sync
-- ⏳ Text-to-Speech for low-literacy support
-- ⏳ Multi-language support (Hindi/Marathi)
-
-## 🔧 Next Steps for Full Implementation
+## Next Steps
 
 1. **Android App Enhancement**:
    - Complete Retrofit API integration
@@ -136,7 +120,7 @@ The database implements the ERD with the following tables:
    - Security audit
    - Production deployment setup
 
-## 📊 End-to-End Flow
+## End-to-End Flow
 
 1. **Collector** selects material category and enters weight
 2. **App** calculates estimated value using local rates
@@ -148,21 +132,13 @@ The database implements the ERD with the following tables:
 8. **Dashboard** shows real-time transaction data
 9. **App** updates local DB with transaction status
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Backend**: FastAPI, SQLite, Python 3.13
 - **Android**: Native Java, Room DB, WorkManager, Retrofit
 - **Dashboard**: Streamlit, Pandas, Requests
 - **AI/ML**: TensorFlow Lite (Android), Scikit-learn (Backend - planned)
 
-## 📝 Notes
 
-- This is a crude prototype focused on core functionality
-- Database uses SQLite for simplicity; can be migrated to MySQL
-- Android app needs additional development for full feature set
-- Security, authentication, and error handling need enhancement
-- Field testing required to validate user experience
-
-## 🤝 Contributing
-
-This prototype was built for the SIH 2026 hackathon. The system addresses the gap between informal scrap collectors and the formal recycling ecosystem by providing price transparency, traceable handovers, and economic incentives for proper recycling.
+---
+> This prototype was built for the SIH 2026 hackathon. The system addresses the gap between informal scrap collectors and the formal recycling ecosystem by providing price transparency, traceable handovers, and economic incentives for proper recycling.
