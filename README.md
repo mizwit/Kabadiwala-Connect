@@ -1,63 +1,168 @@
-# Kabadiwala Connect — backend (today's build)
+# Kabadiwala Connect - Crude Working Prototype
 
-FastAPI + SQLite. Four endpoints, matching the contract: create a lot (get a price
-estimate), match recyclers, confirm a transaction, list transactions for the dashboard.
+A vernacular, low-literacy, offline-tolerant mobile platform that enables informal scrap collectors to discover fair prices, connect directly with authorized recyclers, complete documented and traceable material handovers, and receive payment.
 
-## Run it
+## 🚀 Quick Start
 
+### Backend (FastAPI + SQLite)
 ```bash
 cd backend
-python3 -m venv venv
-source venv/bin/activate        # on Windows: venv\Scripts\activate
+python -m venv venv
+# On Windows: venv\Scripts\activate
+# On Mac/Linux: source venv/bin/activate
 pip install -r requirements.txt
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Interactive docs (auto-generated, useful for testing without the Android app yet):
-http://localhost:8000/docs
+The backend will be available at `http://localhost:8000` with interactive docs at `http://localhost:8000/docs`
 
-## Quick test with curl
+### Dashboard (Streamlit)
+```bash
+cd dashboard
+pip install -r requirements.txt
+streamlit run app.py --server.headless true
+```
+
+The dashboard will be available at `http://localhost:8501`
+
+### Android App
+The Android project structure is set up with Room DB for offline storage. To build and run:
+1. Open the `android` directory in Android Studio
+2. Sync Gradle dependencies
+3. Run on emulator or device
+
+## 📋 Architecture Overview
+
+### Backend API (FastAPI)
+- **Database**: SQLite (easily swappable to MySQL)
+- **Endpoints**:
+  - `GET /health` - Health check
+  - `GET /categories` - Get material categories with rates
+  - `POST /lots` - Create material lot with price estimate
+  - `GET /recyclers/match?lot_id={id}` - Match recyclers for a lot
+  - `POST /transactions` - Confirm transaction
+  - `GET /transactions` - List all transactions
+
+### Android App (Native Java)
+- **Offline-first**: Room DB (SQLite) for local storage
+- **Background Sync**: WorkManager for syncing when online
+- **Entities**: Collector, Material, Recycler, MaterialLot, Transaction
+- **UI**: Basic material lot creation with price estimation
+
+### Dashboard (Streamlit)
+- **Features**: Transaction listing, material categories with rates, health check
+- **Real-time**: Connects to FastAPI backend for live data
+
+## 🧪 Testing the API
 
 ```bash
-# 1. Health check
+# Health check
 curl http://localhost:8000/health
 
-# 2. See the categories + rates the app should show
+# Get categories
 curl http://localhost:8000/categories
 
-# 3. Create a lot -> get a price estimate
+# Create a lot
 curl -X POST http://localhost:8000/lots \
   -H "Content-Type: application/json" \
-  -d '{"category": "mobile", "weight_kg": 2.5}'
-# copy the "id" from the response for the next steps
+  -d '{"category": "Copper Cables", "weight_kg": 2.5}'
 
-# 4. Get recycler offers for that lot
-curl "http://localhost:8000/recyclers/match?lot_id=PASTE_LOT_ID_HERE"
+# Match recyclers (use lot_id from previous response)
+curl "http://localhost:8000/recyclers/match?lot_id={lot_id}"
 
-# 5. Confirm a transaction
+# Confirm transaction
 curl -X POST http://localhost:8000/transactions \
   -H "Content-Type: application/json" \
-  -d '{"lot_id": "PASTE_LOT_ID_HERE", "recycler_name": "EcoRecyclers Pvt Ltd", "amount": 625.0, "payment_method": "cash"}'
+  -d '{"lot_id": "{lot_id}", "recycler_name": "EcoRecyclers Pvt Ltd", "amount": 625.0, "payment_method": "cash"}'
 
-# 6. List all transactions (this is what the Streamlit dashboard will show)
+# List transactions
 curl http://localhost:8000/transactions
 ```
 
-## Where each core requirement is handled here
+## 🗄️ Database Schema
 
-- **Offline-tolerant**: this server doesn't need to know or care when the app was
-  offline — the app just calls these same endpoints whenever it reconnects.
-- **No advanced tooling**: SQLite needs no install/setup step, just this Python file.
-- **Small/beginner-friendly**: one file, no ORM, plain `sqlite3` from the standard library.
+The database implements the ERD with the following tables:
+- **collectors**: Collector profiles with language preferences
+- **materials**: Material categories and types
+- **recyclers**: Authorized recyclers with contact info
+- **material_lots**: Digital lots of collected materials
+- **lot_materials**: Many-to-many relationship between lots and materials
+- **transactions**: Transaction records with pricing
+- **payments**: Payment tracking and status
 
-## Swapping SQLite for MySQL later
+## 🌐 Offline-First Architecture
 
-Only `get_db()` and `init_db()` touch the database directly — when you're ready to move
-to MySQL, replace those two functions (e.g. with `mysql-connector-python`) and the table
-schemas stay the same. Nothing in the endpoint functions needs to change.
+- **Android**: Room DB stores data locally, WorkManager syncs when online
+- **Backend**: Stateless API accepts data whenever the app connects
+- **Dashboard**: Real-time view of synchronized data
 
-## For the Android app
+## 📱 Android Features Implemented
 
-Base URL while testing on an emulator: `http://10.0.2.2:8000` (the emulator's alias for
-your computer's `localhost`). On a real phone on the same Wi-Fi, use your computer's LAN
-IP instead, e.g. `http://192.168.1.23:8000`.
+- ✅ Room Database entities matching backend schema
+- ✅ Basic UI for material lot creation
+- ✅ Price estimation based on material category and weight
+- ✅ Offline storage capability
+- ⏳ API integration (needs Retrofit implementation)
+- ⏳ WorkManager background sync
+- ⏳ Text-to-Speech for low-literacy support
+- ⏳ Multi-language support (Hindi/Marathi)
+
+## 🔧 Next Steps for Full Implementation
+
+1. **Android App Enhancement**:
+   - Complete Retrofit API integration
+   - Implement WorkManager for background sync
+   - Add Text-to-Speech functionality
+   - Implement multi-language support (strings.xml)
+   - Add camera integration for material photos
+   - Implement TensorFlow Lite for image classification
+
+2. **Backend Enhancement**:
+   - Add authentication/authorization
+   - Implement price trend prediction with Scikit-learn
+   - Add GPS location tracking
+   - Implement advanced recycler matching algorithm
+   - Add payment integration (UPI DeepLink)
+
+3. **Dashboard Enhancement**:
+   - Add detailed transaction analytics
+   - Implement recycler management interface
+   - Add price trend visualization
+   - Include earnings tracking for collectors
+
+4. **Testing & Deployment**:
+   - Field testing with real collectors
+   - Performance optimization
+   - Security audit
+   - Production deployment setup
+
+## 📊 End-to-End Flow
+
+1. **Collector** selects material category and enters weight
+2. **App** calculates estimated value using local rates
+3. **App** creates digital lot in local Room DB
+4. **App** syncs lot to backend when online
+5. **Backend** matches lot with authorized recyclers
+6. **Collector** selects recycler and confirms handover
+7. **Backend** records transaction and payment
+8. **Dashboard** shows real-time transaction data
+9. **App** updates local DB with transaction status
+
+## 🛠️ Technology Stack
+
+- **Backend**: FastAPI, SQLite, Python 3.13
+- **Android**: Native Java, Room DB, WorkManager, Retrofit
+- **Dashboard**: Streamlit, Pandas, Requests
+- **AI/ML**: TensorFlow Lite (Android), Scikit-learn (Backend - planned)
+
+## 📝 Notes
+
+- This is a crude prototype focused on core functionality
+- Database uses SQLite for simplicity; can be migrated to MySQL
+- Android app needs additional development for full feature set
+- Security, authentication, and error handling need enhancement
+- Field testing required to validate user experience
+
+## 🤝 Contributing
+
+This prototype was built for the SIH 2026 hackathon. The system addresses the gap between informal scrap collectors and the formal recycling ecosystem by providing price transparency, traceable handovers, and economic incentives for proper recycling.

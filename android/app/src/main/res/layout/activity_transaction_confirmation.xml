@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Confirm Transaction"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <TextView
+        android:id="@+id/lotIdTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lot ID: ..."
+        android:textSize="16sp"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/recyclerNameTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Recycler: ..."
+        android:textSize="16sp"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/amountTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Final Amount: ₹0"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#4CAF50"
+        android:layout_marginBottom="24dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Payment Method:"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp" />
+
+    <RadioGroup
+        android:id="@+id/paymentMethodGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp">
+
+        <RadioButton
+            android:id="@+id/cashPayment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cash (Recommended)"
+            android:checked="true" />
+
+        <RadioButton
+            android:id="@+id/upiPayment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="UPI Payment" />
+
+    </RadioGroup>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+
+        <Button
+            android:id="@+id/backButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Back"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/confirmTransactionButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Confirm Transaction"
+            android:backgroundTint="#4CAF50"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

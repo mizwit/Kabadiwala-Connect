@@ -1,3 +1,79 @@
-/SIH-2026
-/SIH-2026/
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.iml
+.idea/
+.vscode/
+
+# Local environment and secret configuration
+.env
+.env.*
+!.env.example
+!.env.sample
+*.local
+*.secret
+secrets.properties
+secrets.json
+google-services.json
+
+# Android and Gradle local state/build output
+.gradle/
+**/.gradle/
+local.properties
+**/local.properties
+build/
+**/build/
+captures/
+.externalNativeBuild/
+**/.externalNativeBuild/
+.cxx/
+**/.cxx/
+*.apk
+*.aab
+*.apks
+*.hprof
+
+# Android signing keys and certificates
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pkcs12
+*.pem
+*.key
+*.der
+
+# Python environments, caches, and test output
+venv/
+**/venv/
+.venv/
+**/.venv/
+ENV/
+env/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# SQLite/Room databases and local database exports
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Logs and local runtime output
+*.log
+logs/
+**/logs/
+
+# Existing project materials
 SIH-2026/

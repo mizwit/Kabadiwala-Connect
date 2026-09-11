@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kabadiwala Connect</string>
+    <string name="material_category">Material Category</string>
+    <string name="weight">Weight (kg)</string>
+    <string name="enter_weight">Enter weight in kg</string>
+    <string name="estimated_value">Estimated Value: ₹%s</string>
+    <string name="create_lot">Create Digital Lot</string>
+    <string name="lot_created">Lot created! ID: %s</string>
+    <string name="enter_weight_error">Please enter weight</string>
+    <string name="invalid_weight">Invalid weight</string>
+</resources>
