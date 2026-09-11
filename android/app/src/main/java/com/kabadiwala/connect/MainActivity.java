@@ -330,13 +330,52 @@ public class MainActivity extends AppCompatActivity {
         
         // Check network availability
         if (!RetrofitClient.isNetworkAvailable(this)) {
-            Toast.makeText(this, "No network connection available", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "✗ No network connection available", Toast.LENGTH_LONG).show();
             return;
         }
         
         String currentUrl = RetrofitClient.getCurrentBaseUrl();
         Toast.makeText(this, "Trying: " + currentUrl, Toast.LENGTH_SHORT).show();
         
+        new Thread(() -> {
+            try {
+                // Test HTTP connection directly first
+                java.net.URL url = new java.net.URL(currentUrl + "health");
+                java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                connection.setRequestMethod("GET");
+                
+                int responseCode = connection.getResponseCode();
+                String finalCurrentUrl = currentUrl;
+                
+                runOnUiThread(() -> {
+                    if (responseCode == 200) {
+                        Toast.makeText(MainActivity.this, 
+                                "✓ Direct HTTP test succeeded! URL: " + finalCurrentUrl, 
+                                Toast.LENGTH_LONG).show();
+                        // Now try Retrofit
+                        testRetrofitConnection();
+                    } else {
+                        Toast.makeText(MainActivity.this, 
+                                "✗ HTTP test failed: " + responseCode, 
+                                Toast.LENGTH_LONG).show();
+                        tryFallbackUrl();
+                    }
+                });
+                connection.disconnect();
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, 
+                            "✗ Direct HTTP test failed: " + e.getMessage(), 
+                            Toast.LENGTH_LONG).show();
+                    tryFallbackUrl();
+                });
+            }
+        }).start();
+    }
+    
+    private void testRetrofitConnection() {
         ApiService apiService = RetrofitClient.getApiService();
         apiService.getHealth().enqueue(new Callback<HealthResponse>() {
             @Override
@@ -344,26 +383,20 @@ public class MainActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     HealthResponse health = response.body();
                     Toast.makeText(MainActivity.this, 
-                            "✓ Backend connected! Status: " + health.status, 
+                            "✓ Retrofit connected! Status: " + health.status, 
                             Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(MainActivity.this, 
-                            "✗ Backend error: " + response.code(), 
+                            "✗ Retrofit error: " + response.code(), 
                             Toast.LENGTH_LONG).show();
-                    
-                    // Try fallback URL
-                    tryFallbackUrl();
                 }
             }
             
             @Override
             public void onFailure(Call<HealthResponse> call, Throwable t) {
                 Toast.makeText(MainActivity.this, 
-                        "✗ Connection failed: " + t.getMessage(), 
+                        "✗ Retrofit failed: " + t.getMessage(), 
                         Toast.LENGTH_LONG).show();
-                
-                // Try fallback URL
-                tryFallbackUrl();
             }
         });
     }
@@ -384,27 +417,6 @@ public class MainActivity extends AppCompatActivity {
         RetrofitClient.setBaseUrl(fallbackUrl);
         
         // Retry connection
-        ApiService apiService = RetrofitClient.getApiService();
-        apiService.getHealth().enqueue(new Callback<HealthResponse>() {
-            @Override
-            public void onResponse(Call<HealthResponse> call, Response<HealthResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Toast.makeText(MainActivity.this, 
-                            "✓ Fallback worked! Connected to: " + fallbackUrl, 
-                            Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(MainActivity.this, 
-                            "✗ All connection attempts failed", 
-                            Toast.LENGTH_LONG).show();
-                }
-            }
-            
-            @Override
-            public void onFailure(Call<HealthResponse> call, Throwable t) {
-                Toast.makeText(MainActivity.this, 
-                        "✗ Fallback also failed: " + t.getMessage(), 
-                        Toast.LENGTH_LONG).show();
-            }
-        });
+        testBackendConnection();
     }
 }
