@@ -1,4 +1,4 @@
-# Kabadiwala Connect - Crude Working Prototype
+# Kabadiwala Connect - Working Prototype
 
 A vernacular, low-literacy, offline-tolerant mobile platform that enables informal scrap collectors to discover fair prices, connect directly with authorized recyclers, complete documented and traceable material handovers, and receive payment.
 
@@ -11,10 +11,10 @@ python -m venv venv
 # On Windows: venv\Scripts\activate
 # On Mac/Linux: source venv/bin/activate
 pip install -r requirements.txt
-python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+python main.py
 ```
 
-The backend will be available at `http://localhost:8000` with interactive docs at `http://localhost:8000/docs`
+The backend will be available at `http://0.0.0.0:8000` with interactive docs at `http://localhost:8000/docs`
 
 ### Dashboard (Streamlit)
 ```bash
@@ -26,15 +26,21 @@ streamlit run app.py --server.headless true
 The dashboard will be available at `http://localhost:8501`
 
 ### Android App
-The Android project structure is set up with Room DB for offline storage. To build and run:
-1. Open the `android` directory in Android Studio
-2. Sync Gradle dependencies
-3. Run on emulator or device
+```bash
+cd android
+./gradlew.bat assembleDebug  # Windows
+# OR
+./gradlew assembleDebug      # Mac/Linux
+```
+
+Install the APK: `android/app/build/outputs/apk/debug/app-debug.apk`
+
 
 ## Architecture Overview
 
 ### Backend API (FastAPI)
-- **Database**: SQLite (easily swappable to PostgreSQL)
+- **Database**: SQLite with authentication tables
+- **Authentication**: OTP-based registration with PIN login
 - **Endpoints**:
   - `GET /health` - Health check
   - `GET /categories` - Get material categories with rates
@@ -42,16 +48,37 @@ The Android project structure is set up with Room DB for offline storage. To bui
   - `GET /recyclers/match?lot_id={id}` - Match recyclers for a lot
   - `POST /transactions` - Confirm transaction
   - `GET /transactions` - List all transactions
+  - `POST /auth/register` - Request OTP for registration
+  - `POST /auth/verify-otp` - Verify OTP code
+  - `POST /auth/complete-registration` - Complete registration with name/PIN
+  - `POST /auth/login` - Login with PIN hash
 
 ### Android App (Native Java)
+- **Authentication**: Mobile number + 4-digit PIN system
 - **Offline-first**: Room DB (SQLite) for local storage
-- **Background Sync**: WorkManager for syncing when online
+- **Security**: SHA-256 PIN hashing with device ID salt
+- **Network**: Multi-URL fallback (LAN, emulator, localhost)
+- **UI**: Registration flow, PIN login, lot creation, recycler selection, transaction confirmation
 - **Entities**: Collector, Material, Recycler, MaterialLot, Transaction
-- **UI**: Basic material lot creation with price estimation
 
 ### Dashboard (Streamlit)
 - **Features**: Transaction listing, material categories with rates, health check
 - **Real-time**: Connects to FastAPI backend for live data
+
+## Authentication Flow
+
+1. **Registration**:
+   - User enters mobile number
+   - Backend generates 4-digit OTP (shown in response for prototype)
+   - User verifies OTP
+   - User sets 4-digit PIN and name
+   - Backend generates auth token (stored locally encrypted)
+
+2. **Login**:
+   - User enters 4-digit PIN
+   - App verifies PIN against local hash (offline-capable)
+   - When online, app refreshes auth token from backend
+   - All API calls include Bearer token authorization
 
 ## Testing the API
 
@@ -62,12 +89,28 @@ curl http://localhost:8000/health
 # Get categories
 curl http://localhost:8000/categories
 
-# Create a lot
+# Request OTP
+curl -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"9876543210","name":"","device_id":"test_device"}'
+
+# Verify OTP
+curl -X POST http://localhost:8000/auth/verify-otp \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"9876543210","otp":"1234","device_id":"test_device"}'
+
+# Complete registration
+curl -X POST http://localhost:8000/auth/complete-registration \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"9876543210","name":"Test User","device_id":"test_device"}'
+
+# Create a lot (authenticated)
 curl -X POST http://localhost:8000/lots \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{"category": "Copper Cables", "weight_kg": 2.5}'
 
-# Match recyclers (use lot_id from previous response)
+# Match recyclers
 curl "http://localhost:8000/recyclers/match?lot_id={lot_id}"
 
 # Confirm transaction
@@ -82,63 +125,45 @@ curl http://localhost:8000/transactions
 ## Database Schema
 
 The database implements the ERD with the following tables:
-- **collectors**: Collector profiles with language preferences
+- **collectors**: Collector profiles with authentication data
 - **materials**: Material categories and types
 - **recyclers**: Authorized recyclers with contact info
 - **material_lots**: Digital lots of collected materials
 - **lot_materials**: Many-to-many relationship between lots and materials
 - **transactions**: Transaction records with pricing
 - **payments**: Payment tracking and status
-
-
-## Next Steps
-
-1. **Android App Enhancement**:
-   - Complete Retrofit API integration
-   - Implement WorkManager for background sync
-   - Add Text-to-Speech functionality
-   - Implement multi-language support (strings.xml)
-   - Add camera integration for material photos
-   - Implement TensorFlow Lite for image classification
-
-2. **Backend Enhancement**:
-   - Add authentication/authorization
-   - Implement price trend prediction with Scikit-learn
-   - Add GPS location tracking
-   - Implement advanced recycler matching algorithm
-   - Add payment integration (UPI DeepLink)
-
-3. **Dashboard Enhancement**:
-   - Add detailed transaction analytics
-   - Implement recycler management interface
-   - Add price trend visualization
-   - Include earnings tracking for collectors
-
-4. **Testing & Deployment**:
-   - Field testing with real collectors
-   - Performance optimization
-   - Security audit
-   - Production deployment setup
-
-## End-to-End Flow
-
-1. **Collector** selects material category and enters weight
-2. **App** calculates estimated value using local rates
-3. **App** creates digital lot in local Room DB
-4. **App** syncs lot to backend when online
-5. **Backend** matches lot with authorized recyclers
-6. **Collector** selects recycler and confirms handover
-7. **Backend** records transaction and payment
-8. **Dashboard** shows real-time transaction data
-9. **App** updates local DB with transaction status
+- **otp_storage**: Temporary OTP storage for authentication
+- **auth_tokens**: Long-lived authentication tokens
 
 ## Technology Stack
 
 - **Backend**: FastAPI, SQLite, Python 3.13
-- **Android**: Native Java, Room DB, WorkManager, Retrofit
+- **Android**: Native Java, Room DB, Retrofit, OkHttp, Gradle 8.5
 - **Dashboard**: Streamlit, Pandas, Requests
-- **AI/ML**: TensorFlow Lite (Android), Scikit-learn (Backend - planned)
+- **Security**: SHA-256 hashing, device ID salt, encrypted storage
+- **AI/ML**: TensorFlow Lite (planned for image classification)
 
+## End-to-End Flow
+
+1. **Collector** registers with mobile number and sets 4-digit PIN
+2. **Collector** logs in offline using PIN
+3. **Collector** selects material category and enters weight
+4. **App** calculates estimated value using local rates
+5. **App** creates digital lot in local Room DB
+6. **App** syncs lot to backend when online (with auth token)
+7. **Backend** matches lot with authorized recyclers
+8. **Collector** selects recycler and confirms handover
+9. **Backend** records transaction and payment
+10. **Dashboard** shows real-time transaction data
+11. **App** updates local DB with transaction status
+
+## Development Notes
+
+- **Gradle Version**: 8.5 (compatible with Java 21)
+- **Android SDK**: 34
+- **Min SDK**: 21 (Android 5.0+)
+- **Target SDK**: 34 (Android 14)
+- **Java Version**: 17 (compile/target)
 
 ---
 > This prototype was built for the SIH 2026 hackathon. The system addresses the gap between informal scrap collectors and the formal recycling ecosystem by providing price transparency, traceable handovers, and economic incentives for proper recycling.
