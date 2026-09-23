@@ -22,6 +22,7 @@ import com.kabadiwala.connect.api.RetrofitClient;
 import com.kabadiwala.connect.api.CreateLotRequest;
 import com.kabadiwala.connect.api.LotResponse;
 import com.kabadiwala.connect.api.HealthResponse;
+import com.kabadiwala.connect.security.SecureStorage;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -44,6 +45,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        // Check authentication
+        SecureStorage secureStorage = new SecureStorage(this);
+        if (!secureStorage.contains("auth_token")) {
+            // Not authenticated, redirect to login
+            Intent intent = new Intent(this, com.kabadiwala.connect.auth.LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+        
+        // Initialize secure storage in RetrofitClient for auth headers
+        RetrofitClient.setSecureStorage(secureStorage);
         
         // Initialize executor service for database operations
         executorService = Executors.newSingleThreadExecutor();

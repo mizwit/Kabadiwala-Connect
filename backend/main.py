@@ -1,9 +1,11 @@
 import sqlite3
 import uuid
-from datetime import datetime
+import hashlib
+import random
+from datetime import datetime, timedelta
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, Header, Depends
+from pydantic import BaseModel, Field
 
 app = FastAPI(title="Kabadiwala Connect API")
 
@@ -181,10 +183,38 @@ class TransactionResponse(BaseModel):
     status: str
     created_at: str
 
+# Authentication models
+class RegisterRequest(BaseModel):
+    phone: str = Field(..., pattern=r'^\+?[0-9]{10,15}$')  # Accept 10-15 digit numbers with optional +
+    name: str = Field("", min_length=0, max_length=50)  # Optional for initial OTP request
+    device_id: str
+
+class VerifyOTPRequest(BaseModel):
+    phone: str
+    otp: str = Field(..., min_length=4, max_length=4)
+    device_id: str
+
+class LoginRequest(BaseModel):
+    phone: str
+    pin_hash: str
+    device_id: str
+
+class OTPResponse(BaseModel):
+    success: bool
+    message: str
+    verification_required: bool = False
+
+class AuthResponse(BaseModel):
+    success: bool
+    message: str
+    token: Optional[str] = None
+    collector_id: Optional[str] = None
+
 # Initialize database on startup
 @app.on_event("startup")
 def startup_event():
     init_db()
+    add_auth_tables()
 
 # Endpoints
 @app.get("/health")
@@ -397,6 +427,150 @@ def list_transactions():
     
     conn.close()
     return result
+
+# Authentication endpoints
+@app.post("/auth/register")
+def register_collector(request: RegisterRequest):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Check if phone already exists
+    cursor.execute("SELECT collector_id FROM collectors WHERE phone = ?", (request.phone,))
+    existing = cursor.fetchone()
+    
+    if existing:
+        conn.close()
+        return AuthResponse(success=False, message="Phone number already registered")
+    
+    # Generate OTP (for prototype, we'll use a simple 4-digit code)
+    otp = str(random.randint(1000, 9999))
+    
+    # Store OTP temporarily (in production, this would be sent via SMS)
+    cursor.execute("INSERT OR REPLACE INTO otp_storage (phone, otp, expires_at) VALUES (?, ?, ?)",
+                   (request.phone, otp, datetime.now() + timedelta(minutes=5)))
+    
+    conn.commit()
+    conn.close()
+    
+    # In production, send SMS here
+    # For prototype, return OTP in response (REMOVE IN PRODUCTION)
+    return OTPResponse(success=True, message=f"OTP sent: {otp} (Prototype: SMS would be sent in production)", verification_required=True)
+
+@app.post("/auth/verify-otp")
+def verify_otp(request: VerifyOTPRequest):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Verify OTP
+    cursor.execute("SELECT otp, expires_at FROM otp_storage WHERE phone = ?", (request.phone,))
+    otp_record = cursor.fetchone()
+    
+    if not otp_record:
+        conn.close()
+        return OTPResponse(success=False, message="No OTP found for this phone number")
+    
+    otp_expiry = datetime.fromisoformat(otp_record["expires_at"])
+    if datetime.now() > otp_expiry:
+        conn.close()
+        return OTPResponse(success=False, message="OTP has expired")
+    
+    if otp_record["otp"] != request.otp:
+        conn.close()
+        return OTPResponse(success=False, message="Invalid OTP")
+    
+    # OTP is valid, check if collector exists
+    cursor.execute("SELECT collector_id, name FROM collectors WHERE phone = ?", (request.phone,))
+    collector = cursor.fetchone()
+    
+    if collector:
+        # Existing user - just return success
+        conn.close()
+        return OTPResponse(success=True, message="OTP verified successfully", verification_required=False)
+    else:
+        # New user - need to create account
+        conn.close()
+        return OTPResponse(success=True, message="OTP verified. Please complete registration.", verification_required=True)
+
+@app.post("/auth/complete-registration")
+def complete_registration(request: RegisterRequest):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Validate name is provided for complete registration
+    if not request.name or len(request.name) < 2:
+        conn.close()
+        return AuthResponse(success=False, message="Name is required (min 2 characters)")
+    
+    # Create new collector
+    collector_id = str(uuid.uuid4())
+    cursor.execute("""
+        INSERT INTO collectors (collector_id, name, phone, preferred_language, operating_location, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (collector_id, request.name, request.phone, "en", "Unknown", datetime.now().isoformat()))
+    
+    # Generate auth token
+    auth_token = str(uuid.uuid4())
+    cursor.execute("INSERT OR REPLACE INTO auth_tokens (token, collector_id, device_id, expires_at) VALUES (?, ?, ?, ?)",
+                   (auth_token, collector_id, request.device_id, datetime.now() + timedelta(days=365)))
+    
+    conn.commit()
+    conn.close()
+    
+    return AuthResponse(success=True, message="Registration successful", token=auth_token, collector_id=collector_id)
+
+@app.post("/auth/login")
+def login_collector(request: LoginRequest):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Verify collector exists
+    cursor.execute("SELECT collector_id FROM collectors WHERE phone = ?", (request.phone,))
+    collector = cursor.fetchone()
+    
+    if not collector:
+        conn.close()
+        return AuthResponse(success=False, message="Collector not found")
+    
+    # Verify token exists for this device
+    cursor.execute("""
+        SELECT token FROM auth_tokens 
+        WHERE collector_id = ? AND device_id = ? AND expires_at > ?
+    """, (collector["collector_id"], request.device_id, datetime.now().isoformat()))
+    
+    token_record = cursor.fetchone()
+    
+    if not token_record:
+        conn.close()
+        return AuthResponse(success=False, message="No valid token found. Please re-register.")
+    
+    conn.close()
+    return AuthResponse(success=True, message="Login successful", token=token_record["token"], collector_id=collector["collector_id"])
+
+# Add OTP and auth tables to init_db
+def add_auth_tables():
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS otp_storage (
+            phone TEXT PRIMARY KEY,
+            otp TEXT NOT NULL,
+            expires_at TIMESTAMP NOT NULL
+        )
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+            token TEXT PRIMARY KEY,
+            collector_id TEXT NOT NULL,
+            device_id TEXT NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            FOREIGN KEY (collector_id) REFERENCES collectors(collector_id)
+        )
+    """)
+    
+    conn.commit()
+    conn.close()
 
 if __name__ == "__main__":
     import uvicorn

@@ -26,4 +26,17 @@ public interface ApiService {
     
     @GET("transactions")
     Call<List<TransactionResponse>> getTransactions();
+    
+    // Authentication endpoints
+    @POST("auth/register")
+    Call<OTPResponse> register_collector(@Body RegisterRequest request);
+    
+    @POST("auth/verify-otp")
+    Call<OTPResponse> verify_otp(@Body VerifyOTPRequest request);
+    
+    @POST("auth/complete-registration")
+    Call<AuthResponse> complete_registration(@Body RegisterRequest request);
+    
+    @POST("auth/login")
+    Call<AuthResponse> login_collector(@Body LoginRequest request);
 }
