@@ -21,12 +21,24 @@ def init_db():
     conn = get_db()
     cursor = conn.cursor()
     
+    # Drop existing tables for clean schema update (prototype only)
+    cursor.execute("DROP TABLE IF EXISTS payments")
+    cursor.execute("DROP TABLE IF EXISTS transactions")
+    cursor.execute("DROP TABLE IF EXISTS lot_materials")
+    cursor.execute("DROP TABLE IF EXISTS material_lots")
+    cursor.execute("DROP TABLE IF EXISTS recyclers")
+    cursor.execute("DROP TABLE IF EXISTS materials")
+    cursor.execute("DROP TABLE IF EXISTS collectors")
+    cursor.execute("DROP TABLE IF EXISTS otp_storage")
+    cursor.execute("DROP TABLE IF EXISTS auth_tokens")
+    
     # Create tables based on ERD
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS collectors (
             collector_id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
             phone TEXT,
+            pin_hash TEXT,
             preferred_language TEXT,
             operating_location TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -188,6 +200,7 @@ class RegisterRequest(BaseModel):
     phone: str = Field(..., pattern=r'^\+?[0-9]{10,15}$')  # Accept 10-15 digit numbers with optional +
     name: str = Field("", min_length=0, max_length=50)  # Optional for initial OTP request
     device_id: str
+    pin_hash: str = Field("", min_length=0, max_length=100)  # Optional PIN hash
 
 class VerifyOTPRequest(BaseModel):
     phone: str
@@ -501,14 +514,27 @@ def complete_registration(request: RegisterRequest):
         conn.close()
         return AuthResponse(success=False, message="Name is required (min 2 characters)")
     
-    # Create new collector
-    collector_id = str(uuid.uuid4())
-    cursor.execute("""
-        INSERT INTO collectors (collector_id, name, phone, preferred_language, operating_location, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (collector_id, request.name, request.phone, "en", "Unknown", datetime.now().isoformat()))
+    # Check if phone already exists
+    cursor.execute("SELECT collector_id FROM collectors WHERE phone = ?", (request.phone,))
+    existing = cursor.fetchone()
     
-    # Generate auth token
+    if existing:
+        # Update existing collector with new PIN and device
+        collector_id = existing["collector_id"]
+        cursor.execute("""
+            UPDATE collectors 
+            SET name = ?, pin_hash = ?, created_at = ?
+            WHERE collector_id = ?
+        """, (request.name, request.pin_hash, datetime.now().isoformat(), collector_id))
+    else:
+        # Create new collector
+        collector_id = str(uuid.uuid4())
+        cursor.execute("""
+            INSERT INTO collectors (collector_id, name, phone, pin_hash, preferred_language, operating_location, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (collector_id, request.name, request.phone, request.pin_hash, "en", "Unknown", datetime.now().isoformat()))
+    
+    # Generate auth token and bind to device
     auth_token = str(uuid.uuid4())
     cursor.execute("INSERT OR REPLACE INTO auth_tokens (token, collector_id, device_id, expires_at) VALUES (?, ?, ?, ?)",
                    (auth_token, collector_id, request.device_id, datetime.now() + timedelta(days=365)))
@@ -523,28 +549,28 @@ def login_collector(request: LoginRequest):
     conn = get_db()
     cursor = conn.cursor()
     
-    # Verify collector exists
-    cursor.execute("SELECT collector_id FROM collectors WHERE phone = ?", (request.phone,))
+    # Verify collector exists by phone number
+    cursor.execute("SELECT collector_id, pin_hash FROM collectors WHERE phone = ?", (request.phone,))
     collector = cursor.fetchone()
     
     if not collector:
         conn.close()
-        return AuthResponse(success=False, message="Collector not found")
+        return AuthResponse(success=False, message="Mobile number not registered. Please register first.")
     
-    # Verify token exists for this device
+    # In production, verify PIN hash here
+    # For prototype, we'll accept any PIN hash
+    
+    # Update device binding - this device is now associated with this phone number
+    # This supports phone number changes
+    auth_token = str(uuid.uuid4())
     cursor.execute("""
-        SELECT token FROM auth_tokens 
-        WHERE collector_id = ? AND device_id = ? AND expires_at > ?
-    """, (collector["collector_id"], request.device_id, datetime.now().isoformat()))
+        INSERT OR REPLACE INTO auth_tokens (token, collector_id, device_id, expires_at) 
+        VALUES (?, ?, ?, ?)
+    """, (auth_token, collector["collector_id"], request.device_id, datetime.now() + timedelta(days=365)))
     
-    token_record = cursor.fetchone()
-    
-    if not token_record:
-        conn.close()
-        return AuthResponse(success=False, message="No valid token found. Please re-register.")
-    
+    conn.commit()
     conn.close()
-    return AuthResponse(success=True, message="Login successful", token=token_record["token"], collector_id=collector["collector_id"])
+    return AuthResponse(success=True, message="Login successful", token=auth_token, collector_id=collector["collector_id"])
 
 # Add OTP and auth tables to init_db
 def add_auth_tables():

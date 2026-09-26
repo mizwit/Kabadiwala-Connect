@@ -9,4 +9,13 @@
     <string name="lot_created">Lot created! ID: %s</string>
     <string name="enter_weight_error">Please enter weight</string>
     <string name="invalid_weight">Invalid weight</string>
+    
+    <!-- Authentication strings -->
+    <string name="btn_login">Login</string>
+    <string name="txt_login">Login</string>
+    <string name="txt_otp">Enter OTP</string>
+    <string name="txt_mobnum">Mobile Number</string>
+    <string name="btn_signin">Sign In</string>
+    <string name="txt_signin">Sign In</string>
+    <string name="txt_nam">Name</string>
 </resources>

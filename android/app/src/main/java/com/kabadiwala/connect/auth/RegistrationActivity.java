@@ -2,8 +2,6 @@ package com.kabadiwala.connect.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -35,14 +33,14 @@ public class RegistrationActivity extends AppCompatActivity {
     private Button sendOtpButton;
     private Button verifyOtpButton;
     private Button completeRegistrationButton;
+    private TextView loginLink;
+    private TextView headingText;
     private ProgressBar progressBar;
-    private TextView stepIndicator;
-    
     private SecureStorage secureStorage;
     private String deviceId;
     private String phone;
     private String generatedOtp;
-    private int currentStep = 1; // 1: Phone, 2: OTP, 3: Complete Registration
+    private int currentStep = 1; // 1: Initial Registration, 2: OTP Verification, 3: PIN Creation
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +49,9 @@ public class RegistrationActivity extends AppCompatActivity {
         
         secureStorage = new SecureStorage(this);
         deviceId = SecurityUtils.getDeviceId(this);
+        
+        // Don't check for existing auth token - allow fresh registration
+        // This supports reinstallation and mobile number changes
         
         // Initialize views
         phoneEditText = findViewById(R.id.phoneEditText);
@@ -61,47 +62,52 @@ public class RegistrationActivity extends AppCompatActivity {
         sendOtpButton = findViewById(R.id.sendOtpButton);
         verifyOtpButton = findViewById(R.id.verifyOtpButton);
         completeRegistrationButton = findViewById(R.id.completeRegistrationButton);
+        loginLink = findViewById(R.id.loginLink);
+        headingText = findViewById(R.id.headingText);
         progressBar = findViewById(R.id.progressBar);
-        stepIndicator = findViewById(R.id.stepIndicator);
-        
-        // Check if already registered
-        if (secureStorage.contains("auth_token")) {
-            // Already registered, go to login
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-            return;
-        }
         
         setupStep1();
     }
     
     private void setupStep1() {
         currentStep = 1;
-        stepIndicator.setText("Step 1/3: Enter Phone Number");
+        headingText.setText("Registration");
         
+        // Show initial registration fields
+        nameEditText.setVisibility(View.VISIBLE);
         phoneEditText.setVisibility(View.VISIBLE);
+        sendOtpButton.setVisibility(View.VISIBLE);
+        loginLink.setVisibility(View.VISIBLE);
+        
+        // Hide other fields
         otpEditText.setVisibility(View.GONE);
-        nameEditText.setVisibility(View.GONE);
+        verifyOtpButton.setVisibility(View.GONE);
         pinEditText.setVisibility(View.GONE);
         confirmPinEditText.setVisibility(View.GONE);
-        sendOtpButton.setVisibility(View.VISIBLE);
-        verifyOtpButton.setVisibility(View.GONE);
         completeRegistrationButton.setVisibility(View.GONE);
         
         sendOtpButton.setOnClickListener(v -> sendOtp());
+        loginLink.setOnClickListener(v -> {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+        });
     }
     
     private void setupStep2() {
         currentStep = 2;
-        stepIndicator.setText("Step 2/3: Verify OTP");
+        headingText.setText("Enter OTP");
         
-        phoneEditText.setVisibility(View.GONE);
+        // Show OTP verification fields
         otpEditText.setVisibility(View.VISIBLE);
+        verifyOtpButton.setVisibility(View.VISIBLE);
+        
+        // Hide other fields
         nameEditText.setVisibility(View.GONE);
+        phoneEditText.setVisibility(View.GONE);
+        sendOtpButton.setVisibility(View.GONE);
+        loginLink.setVisibility(View.GONE);
         pinEditText.setVisibility(View.GONE);
         confirmPinEditText.setVisibility(View.GONE);
-        sendOtpButton.setVisibility(View.GONE);
-        verifyOtpButton.setVisibility(View.VISIBLE);
         completeRegistrationButton.setVisibility(View.GONE);
         
         verifyOtpButton.setOnClickListener(v -> verifyOtp());
@@ -109,22 +115,32 @@ public class RegistrationActivity extends AppCompatActivity {
     
     private void setupStep3() {
         currentStep = 3;
-        stepIndicator.setText("Step 3/3: Complete Registration");
+        headingText.setText("Create PIN");
         
-        phoneEditText.setVisibility(View.GONE);
-        otpEditText.setVisibility(View.GONE);
+        // Show PIN creation fields
         nameEditText.setVisibility(View.VISIBLE);
         pinEditText.setVisibility(View.VISIBLE);
         confirmPinEditText.setVisibility(View.VISIBLE);
-        sendOtpButton.setVisibility(View.GONE);
-        verifyOtpButton.setVisibility(View.GONE);
         completeRegistrationButton.setVisibility(View.VISIBLE);
+        
+        // Hide other fields
+        phoneEditText.setVisibility(View.GONE);
+        otpEditText.setVisibility(View.GONE);
+        sendOtpButton.setVisibility(View.GONE);
+        loginLink.setVisibility(View.GONE);
+        verifyOtpButton.setVisibility(View.GONE);
         
         completeRegistrationButton.setOnClickListener(v -> completeRegistration());
     }
     
     private void sendOtp() {
+        String name = nameEditText.getText().toString().trim();
         phone = phoneEditText.getText().toString().trim();
+        
+        if (name.isEmpty()) {
+            Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show();
+            return;
+        }
         
         if (phone.isEmpty() || phone.length() < 10) {
             Toast.makeText(this, "Please enter a valid phone number", Toast.LENGTH_SHORT).show();
@@ -142,7 +158,7 @@ public class RegistrationActivity extends AppCompatActivity {
         Toast.makeText(this, "Connecting to: " + currentUrl, Toast.LENGTH_SHORT).show();
         
         ApiService apiService = RetrofitClient.getApiService();
-        RegisterRequest request = new RegisterRequest(phone, "", deviceId);
+        RegisterRequest request = new RegisterRequest(phone, name, deviceId);
         
         apiService.register_collector(request).enqueue(new Callback<OTPResponse>() {
             @Override
@@ -169,7 +185,16 @@ public class RegistrationActivity extends AppCompatActivity {
                         }
                         setupStep2();
                     } else {
-                        Toast.makeText(RegistrationActivity.this, otpResponse.message, Toast.LENGTH_LONG).show();
+                        // If phone already registered, offer to go to login
+                        if (otpResponse.message.contains("already registered")) {
+                            Toast.makeText(RegistrationActivity.this, "Phone number already registered. Please login.", Toast.LENGTH_LONG).show();
+                            loginLink.postDelayed(() -> {
+                                startActivity(new Intent(RegistrationActivity.this, LoginActivity.class));
+                                finish();
+                            }, 2000);
+                        } else {
+                            Toast.makeText(RegistrationActivity.this, otpResponse.message, Toast.LENGTH_LONG).show();
+                        }
                     }
                 } else {
                     String errorMsg = "Registration failed. HTTP " + response.code();
@@ -220,7 +245,7 @@ public class RegistrationActivity extends AppCompatActivity {
                     OTPResponse otpResponse = response.body();
                     if (otpResponse.success) {
                         if (otpResponse.verification_required) {
-                            // New user - need to complete registration
+                            // New user - need to complete registration with PIN
                             setupStep3();
                         } else {
                             // Existing user - could go directly to PIN setup
@@ -246,14 +271,8 @@ public class RegistrationActivity extends AppCompatActivity {
     }
     
     private void completeRegistration() {
-        String name = nameEditText.getText().toString().trim();
         String pin = pinEditText.getText().toString().trim();
         String confirmPin = confirmPinEditText.getText().toString().trim();
-        
-        if (name.isEmpty()) {
-            Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show();
-            return;
-        }
         
         if (!SecurityUtils.isValidPin(pin)) {
             Toast.makeText(this, "PIN must be 4 digits", Toast.LENGTH_SHORT).show();
@@ -268,9 +287,12 @@ public class RegistrationActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         completeRegistrationButton.setEnabled(false);
         
+        // Hash the PIN locally
+        String pinHash = SecurityUtils.hashPin(RegistrationActivity.this, pin);
+        
         // Complete registration with backend
         ApiService apiService = RetrofitClient.getApiService();
-        RegisterRequest request = new RegisterRequest(phone, name, deviceId);
+        RegisterRequest request = new RegisterRequest(phone, nameEditText.getText().toString().trim(), deviceId, pinHash);
         
         apiService.complete_registration(request).enqueue(new Callback<AuthResponse>() {
             @Override
@@ -281,11 +303,11 @@ public class RegistrationActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse authResponse = response.body();
                     if (authResponse.success && authResponse.token != null) {
-                        // Store auth token and hash PIN locally
+                        // Store auth token and other data locally
                         secureStorage.storeSecure("auth_token", authResponse.token);
                         secureStorage.storeSecure("collector_id", authResponse.collector_id);
                         secureStorage.storeSecure("phone", phone);
-                        secureStorage.storeSecure("pin_hash", SecurityUtils.hashPin(RegistrationActivity.this, pin));
+                        secureStorage.storeSecure("pin_hash", pinHash);
                         
                         Toast.makeText(RegistrationActivity.this, "Registration successful!", Toast.LENGTH_LONG).show();
                         

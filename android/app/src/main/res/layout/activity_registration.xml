@@ -1,148 +1,221 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:background="@drawable/main_background"
+    tools:context=".auth.RegistrationActivity">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- Step 1: Initial Registration -->
+    <TextView
+        android:id="@+id/headingText"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_marginStart="147dp"
+        android:layout_marginTop="280dp"
+        android:layout_marginEnd="147dp"
+        android:fontFamily="sans-serif-black"
+        android:text="Registration"
+        android:textColor="#1E781E"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="कबाड़ीवाला कनेक्ट"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:layout_marginTop="32dp"
-            android:layout_marginBottom="16dp" />
+    <EditText
+        android:id="@+id/nameEditText"
+        android:layout_width="300dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="55dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="56dp"
+        android:background="@android:drawable/alert_light_frame"
+        android:backgroundTint="#E8F5E9"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="Name"
+        android:inputType="text"
+        android:padding="12dp"
+        android:textColor="#2E7D32"
+        android:textColorHint="#81C784"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/headingText"
+        tools:ignore="Autofill" />
 
-        <TextView
-            android:id="@+id/stepIndicator"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Step 1/3: Enter Phone Number"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:layout_marginBottom="24dp"
-            android:textColor="#4CAF50" />
+    <EditText
+        android:id="@+id/phoneEditText"
+        android:layout_width="300dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="55dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="56dp"
+        android:background="@android:drawable/alert_light_frame"
+        android:backgroundTint="#E8F5E9"
+        android:ems="10"
+        android:hint="Mobile Number"
+        android:inputType="phone"
+        android:padding="12dp"
+        android:gravity="center"
+        android:textColorHint="#81C784"
+        android:textColor="#2E7D32"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nameEditText"
+        tools:ignore="DuplicateClickableBoundsCheck" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Phone Number"
-            android:textSize="16sp"
-            android:layout_marginBottom="8dp" />
+    <Button
+        android:id="@+id/sendOtpButton"
+        android:layout_width="200dp"
+        android:layout_height="55dp"
+        android:layout_marginStart="65dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="60dp"
+        android:background="@android:drawable/button_onoff_indicator_off"
+        android:backgroundTint="#A03CA0"
+        android:radius="25dp"
+        android:text="Sign Up"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/phoneEditText"
+        tools:ignore="DuplicateSpeakableTextCheck,UnknownId" />
 
-        <EditText
-            android:id="@+id/phoneEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="phone"
-            android:hint="Enter 10-digit mobile number"
-            android:layout_marginBottom="16dp" />
+    <TextView
+        android:id="@+id/loginLink"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="147dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="147dp"
+        android:text="Already have an account? Login"
+        android:textSize="16sp"
+        android:textColor="#4CAF50"
+        android:clickable="true"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sendOtpButton" />
 
-        <EditText
-            android:id="@+id/otpEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:hint="Enter 4-digit OTP"
-            android:maxLength="4"
-            android:layout_marginBottom="16dp"
-            android:visibility="gone" />
+    <!-- Step 2: OTP Verification (Initially Hidden) -->
+    <EditText
+        android:id="@+id/otpEditText"
+        android:layout_width="300dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="55dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="56dp"
+        android:background="@android:drawable/alert_light_frame"
+        android:backgroundTint="#E8F5E9"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="Enter OTP"
+        android:inputType="number"
+        android:padding="12dp"
+        android:textColor="#1E781E"
+        android:textColorHint="#81C784"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/headingText"
+        tools:ignore="TextContrastCheck" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Your Name"
-            android:textSize="16sp"
-            android:layout_marginBottom="8dp"
-            android:visibility="gone" />
+    <Button
+        android:id="@+id/verifyOtpButton"
+        android:layout_width="200dp"
+        android:layout_height="55dp"
+        android:layout_marginStart="65dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="60dp"
+        android:background="@android:drawable/button_onoff_indicator_off"
+        android:backgroundTint="#A03CA0"
+        android:radius="25dp"
+        android:text="Verify OTP"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/otpEditText"
+        tools:ignore="DuplicateSpeakableTextCheck,UnknownId" />
 
-        <EditText
-            android:id="@+id/nameEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:hint="Enter your name"
-            android:layout_marginBottom="16dp"
-            android:visibility="gone" />
+    <!-- Step 3: PIN Creation (Initially Hidden) -->
+    <EditText
+        android:id="@+id/pinEditText"
+        android:layout_width="300dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="55dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="56dp"
+        android:background="@android:drawable/alert_light_frame"
+        android:backgroundTint="#E8F5E9"
+        android:ems="10"
+        android:hint="Create 4-digit PIN"
+        android:inputType="numberPassword"
+        android:maxLength="4"
+        android:padding="12dp"
+        android:gravity="center"
+        android:textColorHint="#81C784"
+        android:textColor="#2E7D32"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nameEditText" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Create 4-digit PIN"
-            android:textSize="16sp"
-            android:layout_marginBottom="8dp"
-            android:visibility="gone" />
+    <EditText
+        android:id="@+id/confirmPinEditText"
+        android:layout_width="300dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="55dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="56dp"
+        android:background="@android:drawable/alert_light_frame"
+        android:backgroundTint="#E8F5E9"
+        android:ems="10"
+        android:hint="Confirm PIN"
+        android:inputType="numberPassword"
+        android:maxLength="4"
+        android:padding="12dp"
+        android:gravity="center"
+        android:textColorHint="#81C784"
+        android:textColor="#2E7D32"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pinEditText" />
 
-        <EditText
-            android:id="@+id/pinEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberPassword"
-            android:hint="Create PIN"
-            android:maxLength="4"
-            android:layout_marginBottom="16dp"
-            android:visibility="gone" />
+    <Button
+        android:id="@+id/completeRegistrationButton"
+        android:layout_width="200dp"
+        android:layout_height="55dp"
+        android:layout_marginStart="65dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="60dp"
+        android:background="@android:drawable/button_onoff_indicator_off"
+        android:backgroundTint="#A03CA0"
+        android:radius="25dp"
+        android:text="Register"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/confirmPinEditText"
+        tools:ignore="DuplicateSpeakableTextCheck,UnknownId" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Confirm PIN"
-            android:textSize="16sp"
-            android:layout_marginBottom="8dp"
-            android:visibility="gone" />
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/completeRegistrationButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <EditText
-            android:id="@+id/confirmPinEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberPassword"
-            android:hint="Confirm PIN"
-            android:maxLength="4"
-            android:layout_marginBottom="24dp"
-            android:visibility="gone" />
-
-        <Button
-            android:id="@+id/sendOtpButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Send OTP"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp" />
-
-        <Button
-            android:id="@+id/verifyOtpButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Verify OTP"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp"
-            android:visibility="gone" />
-
-        <Button
-            android:id="@+id/completeRegistrationButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Complete Registration"
-            android:textSize="16sp"
-            android:backgroundTint="#4CAF50"
-            android:visibility="gone" />
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            android:layout_marginTop="16dp" />
-
-    </LinearLayout>
-
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

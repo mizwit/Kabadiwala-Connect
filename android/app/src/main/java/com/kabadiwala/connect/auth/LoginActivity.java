@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,62 +21,33 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
-    private TextView pinDisplay;
-    private Button[] numberButtons;
-    private Button clearButton;
+    private EditText phoneEditText;
+    private EditText pinEditText;
     private Button loginButton;
-    private Button registerButton;
+    private TextView registerLink;
     private SecureStorage secureStorage;
     private String deviceId;
-    private String enteredPin = "";
     private String phone;
     
     @Override
-protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         
         secureStorage = new SecureStorage(this);
         deviceId = SecurityUtils.getDeviceId(this);
         
-        // Check if already registered
-        if (!secureStorage.contains("auth_token")) {
-            // Not registered, go to registration
-            startActivity(new Intent(this, RegistrationActivity.class));
-            finish();
-            return;
-        }
-        
-        phone = secureStorage.getSecure("phone", "");
-        
         // Initialize views
-        pinDisplay = findViewById(R.id.pinDisplay);
-        clearButton = findViewById(R.id.clearButton);
+        phoneEditText = findViewById(R.id.phoneEditText);
+        pinEditText = findViewById(R.id.pinEditText);
         loginButton = findViewById(R.id.loginButton);
-        registerButton = findViewById(R.id.registerButton);
+        registerLink = findViewById(R.id.registerLink);
         
-        // Number buttons
-        numberButtons = new Button[10];
-        numberButtons[0] = findViewById(R.id.button0);
-        numberButtons[1] = findViewById(R.id.button1);
-        numberButtons[2] = findViewById(R.id.button2);
-        numberButtons[3] = findViewById(R.id.button3);
-        numberButtons[4] = findViewById(R.id.button4);
-        numberButtons[5] = findViewById(R.id.button5);
-        numberButtons[6] = findViewById(R.id.button6);
-        numberButtons[7] = findViewById(R.id.button7);
-        numberButtons[8] = findViewById(R.id.button8);
-        numberButtons[9] = findViewById(R.id.button9);
+        // Don't check for existing auth token - allow fresh login with phone+PIN
+        // This supports reinstallation and mobile number changes
         
-        // Set up number button listeners
-        for (int i = 0; i < 10; i++) {
-            final int digit = i;
-            numberButtons[i].setOnClickListener(v -> addDigit(digit));
-        }
-        
-        clearButton.setOnClickListener(v -> clearPin());
         loginButton.setOnClickListener(v -> attemptLogin());
-        registerButton.setOnClickListener(v -> {
+        registerLink.setOnClickListener(v -> {
             // Clear all data and go to registration
             secureStorage.clearAll();
             startActivity(new Intent(this, RegistrationActivity.class));
@@ -83,68 +55,51 @@ protected void onCreate(Bundle savedInstanceState) {
         });
     }
     
-    private void addDigit(int digit) {
-        if (enteredPin.length() < 4) {
-            enteredPin += String.valueOf(digit);
-            updatePinDisplay();
-        }
-    }
-    
-    private void clearPin() {
-        enteredPin = "";
-        updatePinDisplay();
-    }
-    
-    private void updatePinDisplay() {
-        // Display as asterisks for security
-        StringBuilder display = new StringBuilder();
-        for (int i = 0; i < enteredPin.length(); i++) {
-            display.append("●");
-        }
-        pinDisplay.setText(display.toString());
-    }
-    
     private void attemptLogin() {
-        if (enteredPin.length() != 4) {
+        String enteredPhone = phoneEditText.getText().toString().trim();
+        String enteredPin = pinEditText.getText().toString().trim();
+        
+        if (enteredPhone.isEmpty() || enteredPhone.length() < 10) {
+            Toast.makeText(this, "Please enter a valid phone number", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        if (enteredPin.isEmpty() || enteredPin.length() != 4) {
             Toast.makeText(this, "Please enter 4-digit PIN", Toast.LENGTH_SHORT).show();
             return;
         }
         
-        // Verify PIN against local hash
-        String storedHash = secureStorage.getSecure("pin_hash", "");
-        if (storedHash.isEmpty()) {
-            Toast.makeText(this, "No PIN found. Please register.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        
-        if (SecurityUtils.verifyPin(this, enteredPin, storedHash)) {
-            // PIN matches, verify with backend and get fresh token
-            authenticateWithBackend();
-        } else {
-            Toast.makeText(this, "Incorrect PIN", Toast.LENGTH_SHORT).show();
-            clearPin();
-        }
+        // Authenticate with backend using phone + PIN
+        authenticateWithBackend(enteredPhone, enteredPin);
     }
     
-    private void authenticateWithBackend() {
-        pinDisplay.setText("Authenticating...");
-        
-        String storedHash = secureStorage.getSecure("pin_hash", "");
+    private void authenticateWithBackend(String phoneNumber, String enteredPin) {
+        loginButton.setEnabled(false);
+        loginButton.setText("Authenticating...");
         
         // Initialize secure storage in RetrofitClient
         RetrofitClient.setSecureStorage(secureStorage);
         
+        // Hash the PIN locally for backend verification
+        String pinHash = SecurityUtils.hashPin(this, enteredPin);
+        
         ApiService apiService = RetrofitClient.getApiService();
-        LoginRequest request = new LoginRequest(phone, storedHash, deviceId);
+        LoginRequest request = new LoginRequest(phoneNumber, pinHash, deviceId);
         
         apiService.login_collector(request).enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
+                loginButton.setEnabled(true);
+                loginButton.setText("Log In");
+                
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse authResponse = response.body();
                     if (authResponse.success && authResponse.token != null) {
-                        // Update token
+                        // Store auth token and phone number locally
                         secureStorage.storeSecure("auth_token", authResponse.token);
+                        secureStorage.storeSecure("collector_id", authResponse.collector_id);
+                        secureStorage.storeSecure("phone", phoneNumber);
+                        secureStorage.storeSecure("pin_hash", pinHash);
                         
                         Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
                         
@@ -152,23 +107,18 @@ protected void onCreate(Bundle savedInstanceState) {
                         startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         finish();
                     } else {
-                        pinDisplay.setText("●●●●");
                         Toast.makeText(LoginActivity.this, authResponse.message, Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    pinDisplay.setText("●●●●");
                     Toast.makeText(LoginActivity.this, "Authentication failed", Toast.LENGTH_SHORT).show();
                 }
             }
             
             @Override
             public void onFailure(Call<AuthResponse> call, Throwable t) {
-                pinDisplay.setText("●●●●");
-                Toast.makeText(LoginActivity.this, "Connection failed. Using offline mode.", Toast.LENGTH_LONG).show();
-                
-                // For offline mode, allow login with just local PIN verification
-                startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                finish();
+                loginButton.setEnabled(true);
+                loginButton.setText("Log In");
+                Toast.makeText(LoginActivity.this, "Connection failed. Please check your internet connection.", Toast.LENGTH_LONG).show();
             }
         });
     }
