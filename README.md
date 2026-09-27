@@ -54,11 +54,13 @@ Install the APK: `android/app/build/outputs/apk/debug/app-debug.apk`
   - `POST /auth/login` - Login with PIN hash
 
 ### Android App (Native Java)
-- **Authentication**: Mobile number + 4-digit PIN system
+- **Authentication**: Mobile number + 4-digit PIN system with device binding
+- **Home Page**: Central hub with 4 main sections (Safety, Enter Lot, History, Earnings)
 - **Offline-first**: Room DB (SQLite) for local storage
-- **Security**: SHA-256 PIN hashing with device ID salt
+- **Security**: SHA-256 PIN hashing with device ID salt, encrypted storage
 - **Network**: Multi-URL fallback (LAN, emulator, localhost)
-- **UI**: Registration flow, PIN login, lot creation, recycler selection, transaction confirmation
+- **UI**: Fixed header layout, emoji-based home page buttons, consistent styling
+- **Features**: Registration flow, PIN login, lot creation, recycler matching, transaction confirmation, earnings tracking
 - **Entities**: Collector, Material, Recycler, MaterialLot, Transaction
 
 ### Dashboard (Streamlit)
@@ -68,17 +70,19 @@ Install the APK: `android/app/build/outputs/apk/debug/app-debug.apk`
 ## Authentication Flow
 
 1. **Registration**:
-   - User enters mobile number
+   - User enters name and mobile number
    - Backend generates 4-digit OTP (shown in response for prototype)
    - User verifies OTP
-   - User sets 4-digit PIN and name
+   - User creates and confirms 4-digit PIN
+   - Backend stores PIN hash with device binding
    - Backend generates auth token (stored locally encrypted)
 
 2. **Login**:
-   - User enters 4-digit PIN
-   - App verifies PIN against local hash (offline-capable)
-   - When online, app refreshes auth token from backend
+   - User enters mobile number and 4-digit PIN
+   - App verifies PIN against backend (offline-capable with local hash)
+   - Backend refreshes auth token and device binding
    - All API calls include Bearer token authorization
+   - Supports re-authentication after app reinstall
 
 ## Testing the API
 
@@ -102,7 +106,12 @@ curl -X POST http://localhost:8000/auth/verify-otp \
 # Complete registration
 curl -X POST http://localhost:8000/auth/complete-registration \
   -H "Content-Type: application/json" \
-  -d '{"phone":"9876543210","name":"Test User","device_id":"test_device"}'
+  -d '{"phone":"9876543210","name":"Test User","device_id":"test_device","pin_hash":"hashed_pin"}'
+
+# Login
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"9876543210","pin_hash":"hashed_pin","device_id":"test_device"}'
 
 # Create a lot (authenticated)
 curl -X POST http://localhost:8000/lots \
@@ -125,7 +134,7 @@ curl http://localhost:8000/transactions
 ## Database Schema
 
 The database implements the ERD with the following tables:
-- **collectors**: Collector profiles with authentication data
+- **collectors**: Collector profiles with authentication data (includes pin_hash for device binding)
 - **materials**: Material categories and types
 - **recyclers**: Authorized recyclers with contact info
 - **material_lots**: Digital lots of collected materials
@@ -133,7 +142,7 @@ The database implements the ERD with the following tables:
 - **transactions**: Transaction records with pricing
 - **payments**: Payment tracking and status
 - **otp_storage**: Temporary OTP storage for authentication
-- **auth_tokens**: Long-lived authentication tokens
+- **auth_tokens**: Long-lived authentication tokens with device association
 
 ## Technology Stack
 
@@ -145,17 +154,23 @@ The database implements the ERD with the following tables:
 
 ## End-to-End Flow
 
-1. **Collector** registers with mobile number and sets 4-digit PIN
-2. **Collector** logs in offline using PIN
-3. **Collector** selects material category and enters weight
-4. **App** calculates estimated value using local rates
-5. **App** creates digital lot in local Room DB
-6. **App** syncs lot to backend when online (with auth token)
-7. **Backend** matches lot with authorized recyclers
-8. **Collector** selects recycler and confirms handover
-9. **Backend** records transaction and payment
-10. **Dashboard** shows real-time transaction data
-11. **App** updates local DB with transaction status
+1. **Collector** registers with name, mobile number, and 4-digit PIN
+2. **Collector** logs in using mobile number and PIN
+3. **App** displays home page with 4 main sections:
+   - Safety Information
+   - Enter Lot
+   - Transaction History
+   - Total Earnings
+4. **Collector** selects "Enter Lot" and chooses material category
+5. **Collector** enters weight and app calculates estimated value
+6. **App** creates digital lot in local Room DB
+7. **App** syncs lot to backend when online (with auth token)
+8. **Backend** matches lot with authorized recyclers
+9. **Collector** selects recycler and confirms handover
+10. **Backend** records transaction and payment
+11. **Dashboard** shows real-time transaction data
+12. **App** updates local DB with transaction status
+13. **Collector** can view transaction history and earnings from home page
 
 ## Development Notes
 
@@ -164,6 +179,11 @@ The database implements the ERD with the following tables:
 - **Min SDK**: 21 (Android 5.0+)
 - **Target SDK**: 34 (Android 14)
 - **Java Version**: 17 (compile/target)
+- **Network Configuration**: 
+  - Backend runs on `0.0.0.0:8000` for LAN access
+  - Android app uses LAN IP (currently `192.168.1.3:8000`) for physical devices
+  - Emulator uses `10.0.2.2:8000` for localhost access
+  - Windows Firewall must allow port 8000 for device connections
 
 ---
 > This prototype was built for the SIH 2026 hackathon. The system addresses the gap between informal scrap collectors and the formal recycling ecosystem by providing price transparency, traceable handovers, and economic incentives for proper recycling.

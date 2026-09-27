@@ -10,7 +10,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.kabadiwala.connect.MainActivity;
+import com.kabadiwala.connect.HomePageActivity;
 import com.kabadiwala.connect.R;
 import com.kabadiwala.connect.api.ApiService;
 import com.kabadiwala.connect.api.RetrofitClient;
@@ -273,6 +273,7 @@ public class RegistrationActivity extends AppCompatActivity {
     private void completeRegistration() {
         String pin = pinEditText.getText().toString().trim();
         String confirmPin = confirmPinEditText.getText().toString().trim();
+        String name = nameEditText.getText().toString().trim();
         
         if (!SecurityUtils.isValidPin(pin)) {
             Toast.makeText(this, "PIN must be 4 digits", Toast.LENGTH_SHORT).show();
@@ -292,7 +293,7 @@ public class RegistrationActivity extends AppCompatActivity {
         
         // Complete registration with backend
         ApiService apiService = RetrofitClient.getApiService();
-        RegisterRequest request = new RegisterRequest(phone, nameEditText.getText().toString().trim(), deviceId, pinHash);
+        RegisterRequest request = new RegisterRequest(phone, name, deviceId, pinHash);
         
         apiService.complete_registration(request).enqueue(new Callback<AuthResponse>() {
             @Override
@@ -308,11 +309,12 @@ public class RegistrationActivity extends AppCompatActivity {
                         secureStorage.storeSecure("collector_id", authResponse.collector_id);
                         secureStorage.storeSecure("phone", phone);
                         secureStorage.storeSecure("pin_hash", pinHash);
+                        secureStorage.storeSecure("collector_name", name);
                         
                         Toast.makeText(RegistrationActivity.this, "Registration successful!", Toast.LENGTH_LONG).show();
                         
-                        // Go to main app
-                        startActivity(new Intent(RegistrationActivity.this, MainActivity.class));
+                        // Go to home page
+                        startActivity(new Intent(RegistrationActivity.this, HomePageActivity.class));
                         finish();
                     } else {
                         Toast.makeText(RegistrationActivity.this, authResponse.message, Toast.LENGTH_LONG).show();

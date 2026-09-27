@@ -21,16 +21,16 @@ def init_db():
     conn = get_db()
     cursor = conn.cursor()
     
-    # Drop existing tables for clean schema update (prototype only)
-    cursor.execute("DROP TABLE IF EXISTS payments")
-    cursor.execute("DROP TABLE IF EXISTS transactions")
-    cursor.execute("DROP TABLE IF EXISTS lot_materials")
-    cursor.execute("DROP TABLE IF EXISTS material_lots")
-    cursor.execute("DROP TABLE IF EXISTS recyclers")
-    cursor.execute("DROP TABLE IF EXISTS materials")
-    cursor.execute("DROP TABLE IF EXISTS collectors")
-    cursor.execute("DROP TABLE IF EXISTS otp_storage")
-    cursor.execute("DROP TABLE IF EXISTS auth_tokens")
+    # Only drop tables if needed for schema updates (commented out for data persistence)
+    # cursor.execute("DROP TABLE IF EXISTS payments")
+    # cursor.execute("DROP TABLE IF EXISTS transactions")
+    # cursor.execute("DROP TABLE IF EXISTS lot_materials")
+    # cursor.execute("DROP TABLE IF EXISTS material_lots")
+    # cursor.execute("DROP TABLE IF EXISTS recyclers")
+    # cursor.execute("DROP TABLE IF EXISTS materials")
+    # cursor.execute("DROP TABLE IF EXISTS collectors")
+    # cursor.execute("DROP TABLE IF EXISTS otp_storage")
+    # cursor.execute("DROP TABLE IF EXISTS auth_tokens")
     
     # Create tables based on ERD
     cursor.execute("""
@@ -44,6 +44,12 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    
+    # Add pin_hash column if it doesn't exist (migration)
+    cursor.execute("PRAGMA table_info(collectors)")
+    columns = [column[1] for column in cursor.fetchall()]
+    if 'pin_hash' not in columns:
+        cursor.execute("ALTER TABLE collectors ADD COLUMN pin_hash TEXT")
     
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS materials (

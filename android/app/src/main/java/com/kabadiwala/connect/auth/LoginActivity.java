@@ -8,7 +8,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.kabadiwala.connect.MainActivity;
+import com.kabadiwala.connect.HomePageActivity;
 import com.kabadiwala.connect.R;
 import com.kabadiwala.connect.api.ApiService;
 import com.kabadiwala.connect.api.RetrofitClient;
@@ -103,8 +103,8 @@ public class LoginActivity extends AppCompatActivity {
                         
                         Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
                         
-                        // Go to main app
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        // Go to home page
+                        startActivity(new Intent(LoginActivity.this, HomePageActivity.class));
                         finish();
                     } else {
                         Toast.makeText(LoginActivity.this, authResponse.message, Toast.LENGTH_LONG).show();

@@ -69,6 +69,7 @@ public class TransactionConfirmationActivity extends AppCompatActivity {
         paymentMethodGroup = findViewById(R.id.paymentMethodGroup);
         confirmTransactionButton = findViewById(R.id.confirmTransactionButton);
         backButton = findViewById(R.id.backButton);
+        Button homeButton = findViewById(R.id.homeButton);
         
         // Display transaction details
         lotIdTextView.setText("Lot ID: " + (lotId != null && lotId.length() > 8 ? lotId.substring(0, 8) + "..." : lotId));
@@ -77,6 +78,11 @@ public class TransactionConfirmationActivity extends AppCompatActivity {
         
         confirmTransactionButton.setOnClickListener(v -> confirmTransaction());
         backButton.setOnClickListener(v -> finish());
+        homeButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HomePageActivity.class);
+            startActivity(intent);
+            finish();
+        });
     }
     
     private void confirmTransaction() {

@@ -14,6 +14,7 @@ public class TransactionSuccessActivity extends AppCompatActivity {
     private TextView messageTextView;
     private Button viewEarningsButton;
     private Button newLotButton;
+    private Button homeButton;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +31,7 @@ public class TransactionSuccessActivity extends AppCompatActivity {
         messageTextView = findViewById(R.id.messageTextView);
         viewEarningsButton = findViewById(R.id.viewEarningsButton);
         newLotButton = findViewById(R.id.newLotButton);
+        homeButton = findViewById(R.id.homeButton);
         
         transactionIdTextView.setText("Transaction ID: " + transactionId.substring(0, 8) + "...");
         amountTextView.setText("Amount Received: ₹" + String.format("%.2f", amount));
@@ -41,8 +43,13 @@ public class TransactionSuccessActivity extends AppCompatActivity {
         });
         
         newLotButton.setOnClickListener(v -> {
-            Intent intent = new Intent(TransactionSuccessActivity.this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            Intent intent = new Intent(TransactionSuccessActivity.this, CreateLotActivity.class);
+            startActivity(intent);
+            finish();
+        });
+        
+        homeButton.setOnClickListener(v -> {
+            Intent intent = new Intent(TransactionSuccessActivity.this, HomePageActivity.class);
             startActivity(intent);
             finish();
         });

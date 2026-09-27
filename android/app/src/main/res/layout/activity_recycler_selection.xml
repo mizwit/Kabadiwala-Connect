@@ -3,50 +3,101 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@drawable/simple_background">
 
-    <TextView
+    <!-- Fixed Header Section -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select Authorized Recycler"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginBottom="16dp" />
+        android:background="#76BAA1"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <TextView
-        android:id="@+id/lotInfoTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Lot Info"
-        android:textSize="16sp"
-        android:background="#E8F5E9"
-        android:padding="12dp"
-        android:layout_marginBottom="16dp" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Select Authorized Recycler"
+            android:textColor="#1E5A1E"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Available Recyclers (sorted by rate):"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp" />
+        <TextView
+            android:id="@+id/lotInfoTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#76BAA1"
+            android:padding="12dp"
+            android:text="Lot Info"
+            android:textColor="#1E5A1E"
+            android:textSize="16sp" />
 
-    <ListView
-        android:id="@+id/recyclersListView"
+    </LinearLayout>
+
+    <!-- Scrollable Content -->
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:divider="@android:color/darker_gray"
-        android:dividerHeight="1dp"
-        android:layout_marginBottom="16dp" />
+        android:fillViewport="true">
 
-    <Button
-        android:id="@+id/confirmHandoverButton"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Available Recyclers (sorted by rate):"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
+
+            <ListView
+                android:id="@+id/recyclersListView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@android:color/darker_gray"
+                android:dividerHeight="1dp"
+                android:layout_marginBottom="16dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Fixed Bottom Buttons -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Confirm Handover"
-        android:textSize="16sp"
-        android:backgroundTint="#4CAF50" />
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#E8F5E9">
+
+        <Button
+            android:id="@+id/confirmHandoverButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Confirm Handover"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:backgroundTint="#4CAF50"
+            android:radius="25dp"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/homeButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Back to Home"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:backgroundTint="#9C27B0"
+            android:radius="25dp" />
+
+    </LinearLayout>
 
 </LinearLayout>

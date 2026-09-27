@@ -1,7 +1,10 @@
 package com.kabadiwala.connect;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +19,7 @@ import java.util.concurrent.Executors;
 public class LotsListActivity extends AppCompatActivity {
     private AppDatabase database;
     private ListView lotsListView;
+    private Button homeButton;
     private ExecutorService executorService;
     
     @Override
@@ -36,8 +40,15 @@ public class LotsListActivity extends AppCompatActivity {
         }
         
         lotsListView = findViewById(R.id.lotsListView);
+        homeButton = findViewById(R.id.homeButton);
         
         loadLots();
+        
+        homeButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HomePageActivity.class);
+            startActivity(intent);
+            finish();
+        });
     }
     
     private void loadLots() {

@@ -3,84 +3,105 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@drawable/simple_background">
 
-    <TextView
+    <!-- Fixed Header Section -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="कबाड़ीवाला कनेक्ट"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginBottom="24dp" />
+        android:background="#76BAA1"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Material Category"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="कबाड़ीवाला कनेक्ट"
+            android:textColor="#1E5A1E"
+            android:textSize="28sp"
+            android:textStyle="bold" />
 
-    <Spinner
-        android:id="@+id/categorySpinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp" />
+    </LinearLayout>
 
-    <TextView
+    <!-- Scrollable Content -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Weight (kg)"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
-    <EditText
-        android:id="@+id/weightEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="numberDecimal"
-        android:hint="Enter weight in kg"
-        android:layout_marginBottom="16dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-    <TextView
-        android:id="@+id/estimatedValueTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Estimated Value: ₹0"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Material Category"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
 
-    <Button
-        android:id="@+id/createLotButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Create Digital Lot"
-        android:textSize="16sp"
-        android:layout_marginBottom="16dp" />
+            <Spinner
+                android:id="@+id/categorySpinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp" />
 
-    <Button
-        android:id="@+id/viewLotsButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="View My Lots"
-        android:textSize="16sp"
-        android:layout_marginBottom="16dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Weight (kg)"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
 
-    <Button
-        android:id="@+id/apiTestButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Test Backend Connection"
-        android:textSize="16sp"
-        android:layout_marginBottom="16dp" />
+            <EditText
+                android:id="@+id/weightEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:hint="Enter weight in kg"
+                android:backgroundTint="#E8F5E9"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp" />
 
-    <Button
-        android:id="@+id/viewEarningsButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="View My Earnings"
-        android:textSize="16sp"
-        android:backgroundTint="#FF9800" />
+            <TextView
+                android:id="@+id/estimatedValueTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Estimated Value: ₹0"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#1E5A1E"
+                android:layout_marginBottom="24dp" />
+
+            <Button
+                android:id="@+id/createLotButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Create Digital Lot"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:backgroundTint="#4CAF50"
+                android:radius="25dp"
+                android:layout_marginBottom="16dp" />
+
+            <Button
+                android:id="@+id/homeButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Back to Home"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:backgroundTint="#9C27B0"
+                android:radius="25dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
 
 </LinearLayout>

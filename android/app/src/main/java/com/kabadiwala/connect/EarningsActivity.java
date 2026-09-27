@@ -1,5 +1,6 @@
 package com.kabadiwala.connect;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -47,7 +48,11 @@ public class EarningsActivity extends AppCompatActivity {
         
         loadEarnings();
         
-        backButton.setOnClickListener(v -> finish());
+        backButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HomePageActivity.class);
+            startActivity(intent);
+            finish();
+        });
     }
     
     private void loadEarnings() {

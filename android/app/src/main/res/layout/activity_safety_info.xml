@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/simple_background">
+
+    <!-- Fixed Header Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#76BAA1"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Safety Information"
+            android:textColor="#1E5A1E"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="E-Waste Safety Guidelines"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Always wear protective gloves when handling batteries"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Never burn electronic cables or components"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Keep CRT monitors away from direct sunlight and heat"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Store batteries in a cool, dry place away from fire hazards"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Use proper tools when opening devices to avoid injury"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Handle motherboards and PCBs with care to avoid component damage"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Separate materials by type for proper recycling"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Keep hazardous materials away from children and pets"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Always use authorized recyclers for proper disposal"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Report any spills or leaks immediately"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="32dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="⚠️ Emergency Contacts"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#FF5722"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• For battery spills: Use sand or earth to contain"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• For fires: Use appropriate fire extinguisher (not water)"
+                android:textSize="16sp"
+                android:textColor="#1E781E"
+                android:layout_marginBottom="32dp" />
+
+            <Button
+                android:id="@+id/homeButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Back to Home"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:backgroundTint="#9C27B0"
+                android:radius="25dp"
+                android:layout_marginTop="16dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

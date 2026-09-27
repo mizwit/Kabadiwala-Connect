@@ -63,6 +63,7 @@ public class RecyclerSelectionActivity extends AppCompatActivity {
         recyclersListView = findViewById(R.id.recyclersListView);
         lotInfoTextView = findViewById(R.id.lotInfoTextView);
         confirmHandoverButton = findViewById(R.id.confirmHandoverButton);
+        Button homeButton = findViewById(R.id.homeButton);
         
         if (lotId != null) {
             lotInfoTextView.setText(String.format("Lot ID: %s\nEstimated Value: ₹%.2f", 
@@ -73,6 +74,11 @@ public class RecyclerSelectionActivity extends AppCompatActivity {
         loadMatchedRecyclers();
         
         confirmHandoverButton.setOnClickListener(v -> confirmHandover());
+        homeButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HomePageActivity.class);
+            startActivity(intent);
+            finish();
+        });
     }
     
     private void loadMatchedRecyclers() {
